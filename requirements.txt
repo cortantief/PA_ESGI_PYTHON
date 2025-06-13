@@ -1,0 +1,6 @@
+anytree
+beautifulsoup4
+dispatcher
+requests
+scrapy
+signals
