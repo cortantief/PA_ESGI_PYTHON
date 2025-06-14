@@ -5,3 +5,5 @@ requests
 scrapy
 signals
 xsstrike
+git+https://github.com/cortantief/LFITester.git
+sqlmap

@@ -1,40 +1,36 @@
-import tempfile
 import subprocess
-import os
+import re
 
 
-def lfi_checker(url: str) -> str:
-    """
-    Runs LFITester.py with the given URL and returns the output as a string.
-    """
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
-        temp_path = tmp_file.name
+def lfi_checker(url: str):
+    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
-    try:
-        # Command to execute
-        command = [
-            "python3", "LFITester.py",
-            "-o", temp_path,
-            "-u", url
-        ]
+    command = ["lfitester", "-u", url]
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        bufsize=1,
+        universal_newlines=True,
+    )
 
-        # Run the command, redirect output to the temp file
-        with open(os.devnull, 'w') as devnull:
-            subprocess.run(command, stdout=devnull,
-                           stderr=devnull, check=False)
+    vulnerable = False
+    payload = None
 
-        # Read the output from the file
-        with open(temp_path, 'r') as f:
-            output = f.read()
+    for line in process.stdout:
+        clean_line = ansi_escape.sub('', line).strip()
+        if "[+]" in clean_line and "found" in clean_line:
+            vulnerable = True
+            payload = clean_line.split("with")[1].strip()
+            if vulnerable and payload:
+                process.terminate()
+                return {
+                    "vulnerable": True,
+                    "payload": payload
+                }
 
-        return output
-
-    finally:
-        # Clean up the temporary file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-
-if __name__ == "__main__":
-    print(lfi_checker("http://172.16.47.198/projects.php?project=i"))
+    return {
+        "vulnerable": False,
+        "payload": payload
+    }

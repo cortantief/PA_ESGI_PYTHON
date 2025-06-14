@@ -9,7 +9,7 @@ def xss_checker(url: str):
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=subprocess.DEVNULL,
         text=True,
         bufsize=1,
         universal_newlines=True
