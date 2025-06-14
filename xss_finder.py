@@ -32,15 +32,7 @@ def xss_checker(url: str):
 
             if confidence == 10:
                 process.terminate()
-                return {
-                    "payload": payload,
-                    "efficiency": efficiency,
-                    "confidence": confidence
-                }
+                return payload
             elif result is None or (result is not None and result["confidence"] < confidence):
-                result = {
-                    "payload": payload,
-                    "efficiency": efficiency,
-                    "confidence": confidence
-                }
+                result = payload
     return result

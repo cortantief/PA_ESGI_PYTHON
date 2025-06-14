@@ -12,6 +12,11 @@ from queue import Queue
 from typing import List
 import os
 import params_finder
+import lfi_checker
+import xss_finder
+import sql_checker
+import utils
+import pa_log
 
 LOG_LEVEL = "INFO"
 
@@ -19,22 +24,26 @@ LOG_LEVEL = "INFO"
 def worker(task_queue: Queue):
     while not task_queue.empty():
         task = task_queue.get()
+        url = task["url"]
         if not task:
             return
         node: tree.WebTree = task["node"]
         if not node.params:
-            words = params_finder.params_finder(task["url"])
-            params = []
+            words = params_finder.params_finder(url)
             for param in words:
-                d = {}
-                d[param] = []
-                params.append(d)
+                node.params[param] = [utils.generate_random_value()]
                 if LOG_LEVEL == "INFO":
-                    parsed = urllib.parse.urlparse(task["url"])
+                    parsed = urllib.parse.urlparse(url)
                     print(f"Param `{param}` found in {parsed.path}")
-            node.params = params
-        else:
-            pass
+        for param in node.params.keys():
+            clean = utils.add_or_update_url_param(
+                utils.strip_url_params(url), param, node.params[param])
+            lfi = lfi_checker.lfi_checker(clean)
+            xss = xss_finder.xss_checker(clean)
+            if xss:
+                pa_log.warning(url)
+            if lfi:
+                pa_log.warning(url)
         task_queue.task_done()  # Mark task as done
 
 

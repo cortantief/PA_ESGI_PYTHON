@@ -25,12 +25,5 @@ def lfi_checker(url: str):
             payload = clean_line.split("with")[1].strip()
             if vulnerable and payload:
                 process.terminate()
-                return {
-                    "vulnerable": True,
-                    "payload": payload
-                }
-
-    return {
-        "vulnerable": False,
-        "payload": payload
-    }
+                return payload
+    return None

@@ -44,12 +44,6 @@ def sql_injection_checker(url: str):
 
                 if vulnerable and payload_info:
                     process.terminate()
-                    return {
-                        "vulnerable": True,
-                        "payload": payload_info
-                    }
+                    return payload_info
 
-        return {
-            "vulnerable": False,
-            "payload": None
-        }
+        return None
