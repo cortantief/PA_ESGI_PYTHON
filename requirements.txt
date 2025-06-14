@@ -4,3 +4,4 @@ dispatcher
 requests
 scrapy
 signals
+xsstrike
