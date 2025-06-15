@@ -1,5 +1,6 @@
 import subprocess
 import re
+import urllib
 
 
 def lfi_checker(url: str):
@@ -25,5 +26,5 @@ def lfi_checker(url: str):
             payload = clean_line.split("with")[1].strip()
             if vulnerable and payload:
                 process.terminate()
-                return payload
+                return urllib.parse.unquote(payload)
     return None

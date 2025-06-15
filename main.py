@@ -14,10 +14,12 @@ import os
 import tree
 import params_finder
 import lfi_checker
-import xss_finder
+import xss_checker
 import sql_checker
 import utils
 import pa_log
+
+# Création d'une class pour la réutilisation sur une application web
 
 
 class SecurityScanner:
@@ -70,10 +72,23 @@ class SecurityScanner:
                 clean = utils.add_or_update_url_param(
                     utils.strip_url_params(url), param, node.params[param]
                 )
-                lfi = lfi_checker.lfi_checker(clean)
-                xss = xss_finder.xss_checker(clean)
-                if lfi or xss:
-                    self._logger.warning(url)
+                if lfi := lfi_checker.lfi_checker(clean):
+                    vulnerable = utils.add_or_update_url_param(
+                        utils.strip_url_params(url), param, lfi
+                    )
+                    self._logger.warning(f"LFI Vulnerability found : {lfi}")
+                if xss := xss_checker.xss_checker(clean):
+                    vulnerable = utils.add_or_update_url_param(
+                        utils.strip_url_params(url), param, xss
+                    )
+                    self._logger.warning(
+                        f"XSS Vulnerability found : {vulnerable}")
+                if sqli := sql_checker.sql_checker(clean):
+                    vulnerable = utils.add_or_update_url_param(
+                        utils.strip_url_params(url), param, sqli
+                    )
+                    self._logger.warning(
+                        f"SQLI Vulnerability found : {vulnerable}")
 
             self.queue.task_done()
 
@@ -150,12 +165,10 @@ def writable_and_creatable(path):
     return path
 
 
-# ------------- Entry point ------------------
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='PA_ESGI-sharbouli-scorvisier',
-        description='Un programme basique qui permet de checker les vulnérabilités'
+        description='Un programme basique qui permet de checker les vulnérabilités dun site WEB'
     )
     parser.add_argument("-u", "--url", required=True,
                         type=url_type, help="Une url à tester")

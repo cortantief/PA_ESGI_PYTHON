@@ -2,9 +2,11 @@ import subprocess
 import re
 import os
 import tempfile
+import urllib
+import urllib.parse
 
 
-def sql_injection_checker(url: str):
+def sql_checker(url: str):
     ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
     # Use a temp HOME to avoid writing .local files
@@ -44,6 +46,6 @@ def sql_injection_checker(url: str):
 
                 if vulnerable and payload_info:
                     process.terminate()
-                    return payload_info
+                    return urllib.parse.unquote(payload_info)
 
         return None
