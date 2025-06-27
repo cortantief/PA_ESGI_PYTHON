@@ -7,3 +7,6 @@ signals
 xsstrike
 git+https://github.com/cortantief/LFITester.git
 sqlmap
+pdfkit
+matplotlib
+rich
