@@ -39,7 +39,7 @@ class SecurityScanner:
             return 0.0
 
         done = self._task_size - self.queue.qsize()      # tasks already pulled
-        return done / self._task_size * 100.0
+        return (done / self._task_size) * 100.0
 
     def run(self):
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
