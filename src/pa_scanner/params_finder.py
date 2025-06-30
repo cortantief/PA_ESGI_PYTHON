@@ -1,11 +1,14 @@
 from . import utils
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from .fingerprint import generate_fingerprint, compare_fingerprint
+from importlib import resources as imp_res
 
 
 def params_finder(url: str):
     fing = generate_fingerprint(url)
-    with open("wordlists/parameters.txt", "r") as wordlists:
+    with imp_res.files("pa_scanner") \
+        .joinpath("wordlists", "parameters.txt") \
+            .open("r", encoding="utf-8") as wordlists:
         parsed_url = urlparse(url)
 
         # Get existing query parameters
