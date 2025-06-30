@@ -5,6 +5,8 @@ from . import xss_checker
 from . import sql_checker
 from . import utils
 from . import pa_log
+from . import events as ev
+
 import scrapy
 import re
 from scrapy.crawler import CrawlerProcess
@@ -29,6 +31,7 @@ class SecurityScanner:
         self._logger = pa_log.PrettyLogger(level=log_level)
 
     def run(self):
+        ev.SCAN_START.send(target=self.target)
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
         self.process.crawl(self.Scrapper, scanner=self)
         self.process.start()
@@ -42,6 +45,7 @@ class SecurityScanner:
         for t in threads:
             t.join()
         self.queue.join()
+        ev.SCAN_END.send(target=self.target)
 
     def _worker(self):
         while not self.queue.empty():
@@ -56,6 +60,7 @@ class SecurityScanner:
                 words = params_finder.params_finder(url)
                 for param in words:
                     node.params[param] = [utils.generate_random_value()]
+                    ev.PARAM_FOUND(url=url, param=param)
                     if self.log_level == "INFO":
                         parsed = urllib.parse.urlparse(url)
                         self._logger.info(
@@ -70,18 +75,22 @@ class SecurityScanner:
                         utils.strip_url_params(url), param, lfi
                     )
                     self._logger.warning(f"LFI Vulnerability found : {lfi}")
+                    ev.VULN_FOUND.send(url=vulnerable, type="LFI", payload=lfi)
                 if xss := xss_checker.xss_checker(clean):
                     vulnerable = utils.add_or_update_url_param(
                         utils.strip_url_params(url), param, xss
                     )
                     self._logger.warning(
                         f"XSS Vulnerability found : {vulnerable}")
+                    ev.VULN_FOUND.send(url=vulnerable, type="XSS", payload=xss)
                 if sqli := sql_checker.sql_checker(clean):
                     vulnerable = utils.add_or_update_url_param(
                         utils.strip_url_params(url), param, sqli
                     )
                     self._logger.warning(
                         f"SQLI Vulnerability found : {vulnerable}")
+                    ev.VULN_FOUND.send(
+                        url=vulnerable, type="SQLI", payload=sqli)
 
             self.queue.task_done()
 

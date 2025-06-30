@@ -1,36 +1,26 @@
 [build-system]
-requires      = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name            = "pa-esgi-scan"
-version         = "0.1.0"
-description     = "Simple web-security scanner (ESGI Python project)"
-authors         = [{name = "Harbouli Soufiane", email = "sharbouli@myges.fr"}]
-readme          = "README.md"
-license         = {text = "MIT"}
+name = "pa-esgi-scan"
+version = "0.1.0"
+description = "Simple web-security scanner (ESGI Python project)"
+authors = [{ name = "Harbouli Soufiane", email = "sharbouli@myges.fr" }]
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.9"
 
-dependencies = [
-    "anytree",
-    "beautifulsoup4",
-    "requests",
-    "scrapy",
-    "pydispatcher",
-    "LFITester @ git+https://github.com/cortantief/LFITester.git",
-    "sqlmap",
-	"jinja2",
-	"pdfkit",
-	"matplotlib",
-	"rich"
-]
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
 
 [project.scripts]
-pa-esgi-scan = "pa_scanner.main:main"   # produces `pa-esgi-scan` command
-
+pa-esgi-scan = "pa_scanner.main:main"
 [tool.setuptools]
-package-dir   = {"" = "src"}
-packages      = ["pa_scanner"]
+package-dir = { "" = "src" }
+packages = ["pa_scanner"]
 
 [tool.setuptools.package-data]
-"pa_scanner" = ["templates/**/*"]       # include Jinja templates
+"pa_scanner" = ["templates/**/*"]

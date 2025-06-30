@@ -10,3 +10,4 @@ sqlmap
 pdfkit
 matplotlib
 rich
+blinker
