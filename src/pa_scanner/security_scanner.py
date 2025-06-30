@@ -7,6 +7,8 @@ from . import utils
 from . import pa_log
 from . import events as ev
 
+from .events import VulnType
+
 import scrapy
 import re
 from scrapy.crawler import CrawlerProcess
@@ -26,12 +28,12 @@ class SecurityScanner:
         self.queue = Queue()
         self.tree = tree.WebTree("/")
         self.process = CrawlerProcess(
-            settings={"LOG_LEVEL": log_level, 'LOG_ENABLED': False}
+            settings={'LOG_ENABLED': False}
         )
         self._logger = pa_log.PrettyLogger(level=log_level)
 
     def run(self):
-        ev.SCAN_START.send(target=self.target)
+        ev.scan_start(self.target)
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
         self.process.crawl(self.Scrapper, scanner=self)
         self.process.start()
@@ -45,7 +47,7 @@ class SecurityScanner:
         for t in threads:
             t.join()
         self.queue.join()
-        ev.SCAN_END.send(target=self.target)
+        ev.scan_end(self.target)
 
     def _worker(self):
         while not self.queue.empty():
@@ -61,10 +63,9 @@ class SecurityScanner:
                 for param in words:
                     node.params[param] = [utils.generate_random_value()]
                     ev.PARAM_FOUND.send(url=url, param=param)
-                    if self.log_level == "INFO":
-                        parsed = urllib.parse.urlparse(url)
-                        self._logger.info(
-                            f"Param `{param}` found in {parsed.path}")
+                    parsed = urllib.parse.urlparse(url)
+                    self._logger.info(
+                        f"Param `{param}` found in {parsed.path}")
 
             for param in node.params:
                 clean = utils.add_or_update_url_param(
@@ -74,23 +75,26 @@ class SecurityScanner:
                     vulnerable = utils.add_or_update_url_param(
                         utils.strip_url_params(url), param, lfi
                     )
-                    self._logger.warning(f"LFI Vulnerability found : {lfi}")
-                    ev.VULN_FOUND.send(url=vulnerable, type="LFI", payload=lfi)
+                    self._logger.warning(
+                        f"{VulnType.LFI} Vulnerability found : {lfi}")
+                    ev.vuln_found(url=vulnerable,
+                                  type=VulnType.LFI, payload=lfi)
                 if xss := xss_checker.xss_checker(clean):
                     vulnerable = utils.add_or_update_url_param(
                         utils.strip_url_params(url), param, xss
                     )
                     self._logger.warning(
-                        f"XSS Vulnerability found : {vulnerable}")
-                    ev.VULN_FOUND.send(url=vulnerable, type="XSS", payload=xss)
+                        f"{VulnType.XSS} Vulnerability found : {vulnerable}")
+                    ev.vuln_found(
+                        url=vulnerable, type=VulnType.XSS, payload=xss)
                 if sqli := sql_checker.sql_checker(clean):
                     vulnerable = utils.add_or_update_url_param(
                         utils.strip_url_params(url), param, sqli
                     )
                     self._logger.warning(
-                        f"SQLI Vulnerability found : {vulnerable}")
-                    ev.VULN_FOUND.send(
-                        url=vulnerable, type="SQLI", payload=sqli)
+                        f"{VulnType.SQLI} Vulnerability found : {vulnerable}")
+                    ev.vuln_found(
+                        url=vulnerable, type=VulnType.SQLI, payload=sqli)
 
             self.queue.task_done()
 
