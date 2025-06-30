@@ -5,7 +5,7 @@ from .fingerprint import generate_fingerprint, compare_fingerprint
 
 def params_finder(url: str):
     fing = generate_fingerprint(url)
-    with open("wordlists/parameters.txt", "r") as wordlists:
+    with open("../wordlists/parameters.txt", "r") as wordlists:
         parsed_url = urlparse(url)
 
         # Get existing query parameters
