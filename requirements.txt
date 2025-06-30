@@ -5,7 +5,7 @@ requests
 scrapy
 signals
 xsstrike
-lfi-tester @ git+https://github.com/cortantief/LFITester.git@main
+lfitester @ git+https://github.com/cortantief/LFITester.git@main
 sqlmap
 pdfkit
 matplotlib
