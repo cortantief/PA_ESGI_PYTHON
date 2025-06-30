@@ -11,6 +11,9 @@ class VulnType(str, Enum):
     SQLI = "SQLI"
     LFI = "LFI"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 # ──────────────────────────────────────────
 # 1.  Define the raw signals
