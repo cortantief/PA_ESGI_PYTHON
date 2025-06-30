@@ -23,4 +23,4 @@ package-dir = { "" = "src" }
 packages = ["pa_scanner"]
 
 [tool.setuptools.package-data]
-"pa_scanner" = ["templates/**/*"]
+"pa_scanner" = ["templates/**/*", "wordlists/**/*"]
