@@ -60,7 +60,7 @@ class SecurityScanner:
                 words = params_finder.params_finder(url)
                 for param in words:
                     node.params[param] = [utils.generate_random_value()]
-                    ev.PARAM_FOUND(url=url, param=param)
+                    ev.PARAM_FOUND.send(url=url, param=param)
                     if self.log_level == "INFO":
                         parsed = urllib.parse.urlparse(url)
                         self._logger.info(
