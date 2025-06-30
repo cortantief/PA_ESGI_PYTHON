@@ -38,8 +38,9 @@ class SecurityScanner:
         if not self._started or self._task_size == 0:
             return 0.0
 
-        done = self._task_size - self.queue.qsize()      # tasks already pulled
-        return (done / self._task_size) * 100.0
+        remaining = self.queue.unfinished_tasks      # ← after task_done()
+        done = self._task_size - remaining
+        return done / self._task_size * 100.0
 
     def run(self):
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
