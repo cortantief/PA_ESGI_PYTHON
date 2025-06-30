@@ -31,15 +31,26 @@ class SecurityScanner:
             settings={'LOG_ENABLED': False}
         )
         self._logger = pa_log.PrettyLogger(level=log_level)
+        self._task_size = 0
+        self._started = False
+
+    def get_progress(self) -> float:
+        if not self._started or self._task_size == 0:
+            return 0.0
+
+        done = self._task_size - self.queue.qsize()      # tasks already pulled
+        return done / self._task_size * 100.0
 
     def run(self):
-        ev.scan_start(self.target)
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
         self.process.crawl(self.Scrapper, scanner=self)
         self.process.start()
 
     def _on_spider_closed(self):
         threads = []
+        self._task_size = self.queue.qsize()
+        self._started = True
+        ev.scan_start(self.target)
         for _ in range(self.threads_nbr):
             thread = threading.Thread(target=self._worker)
             thread.start()
