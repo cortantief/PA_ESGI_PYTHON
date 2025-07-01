@@ -72,7 +72,7 @@ class SecurityScanner:
             self._logger.info(f"Creating file to path `{self.output_file}`")
             try:
                 rapport_gen.render_html(
-                    self._vuln_store.export(), self.output_file)
+                    self._vuln_store.export(), self.output_file, self.target)
             except Exception as e:
                 self._logger.error(e)
 

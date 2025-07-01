@@ -100,7 +100,6 @@ def generate_chart(vulnerabilities):
 
 def render_html(vulnerabilities, outputpath: str, target: str):
     chart_path = generate_chart(vulnerabilities)
-    print(imp_res.files("pa_scanner").joinpath("templates"))
     # Jinja2 rendering
     template_loader = jinja2.FileSystemLoader(
         searchpath=imp_res.files("pa_scanner").joinpath("templates"))
