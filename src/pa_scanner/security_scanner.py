@@ -20,7 +20,7 @@ import time
 
 
 class SecurityScanner:
-    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO", output_file: str | None = None):
+    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO", output_file: str | None = None, install_signal_handlers=True):
         self.target = target if target.endswith("/") else target + "/"
         self.domain = urllib.parse.urlparse(self.target).netloc
         self.threads_nbr = threads_nbr
@@ -35,6 +35,7 @@ class SecurityScanner:
         self._started = False
         self.output_file = output_file
         self._vuln_store = rapport_gen.VulnerabilityStore(target)
+        self._install_signal_handlers = install_signal_handlers
 
         @ev.on_vuln_found
         def _log_vuln(vuln: rapport_gen.Vulnerability):
@@ -53,7 +54,8 @@ class SecurityScanner:
     def run(self):
         dispatcher.connect(self._on_spider_closed, signals.spider_closed)
         self.process.crawl(self.Scrapper, scanner=self)
-        self.process.start()
+        self.process.start(
+            install_signal_handlers=self._install_signal_handlers)
 
     def _on_spider_closed(self):
         threads = []
