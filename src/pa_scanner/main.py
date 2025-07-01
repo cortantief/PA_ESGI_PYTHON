@@ -54,10 +54,10 @@ def main():
     )
 
     args = parser.parse_args()
-
     scanner = SecurityScanner(
         target=args.url,
         threads_nbr=args.threads,
-        log_level=args.log
+        log_level=args.log,
+        output_file=args.output
     )
     scanner.run()

@@ -6,9 +6,8 @@ from . import sql_checker
 from . import utils
 from . import pa_log
 from . import events as ev
-
-from .events import VulnType
-
+from . import rapport_gen
+from .rapport_gen import Vulnerability, VulnerabilityName
 import scrapy
 import re
 from scrapy.crawler import CrawlerProcess
@@ -17,10 +16,11 @@ from pydispatch import dispatcher
 from scrapy import signals
 from queue import Queue
 import urllib
+import time
 
 
 class SecurityScanner:
-    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO"):
+    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO", output_file: str | None = None):
         self.target = target if target.endswith("/") else target + "/"
         self.domain = urllib.parse.urlparse(self.target).netloc
         self.threads_nbr = threads_nbr
@@ -33,6 +33,14 @@ class SecurityScanner:
         self._logger = pa_log.PrettyLogger(level=log_level)
         self._task_size = 0
         self._started = False
+        self.output_file = output_file
+        self._vuln_store = rapport_gen.VulnerabilityStore(target)
+
+        @ev.on_vuln_found
+        def _log_vuln(vuln: rapport_gen.Vulnerability):
+            self._logger.warning(
+                f'Vulnerability of type {vuln.name} is found in the endpoint `{vuln.endpoint}` with parameter `{vuln.param}` with that payload : {vuln.payload}')
+            self._vuln_store.add_vuln(vuln)
 
     def get_progress(self) -> float:
         if not self._started or self._task_size == 0:
@@ -60,6 +68,13 @@ class SecurityScanner:
             t.join()
         self.queue.join()
         ev.scan_end(self.target)
+        if self.output_file:
+            self._logger.info(f"Creating file to path `{self.output_file}`")
+            try:
+                rapport_gen.render_html(
+                    self._vuln_store.export(), self.output_file)
+            except Exception as e:
+                self._logger.error(e)
 
     def _worker(self):
         while not self.queue.empty():
@@ -74,39 +89,31 @@ class SecurityScanner:
                 words = params_finder.params_finder(url)
                 for param in words:
                     node.params[param] = [utils.generate_random_value()]
-                    ev.PARAM_FOUND.send(url=url, param=param)
+                    ev.param_found(url=url, param=param)
                     parsed = urllib.parse.urlparse(url)
                     self._logger.info(
                         f"Param `{param}` found in {parsed.path}")
 
+            url_clean = utils.strip_url_params(url)
             for param in node.params:
+                vuln = None
                 clean = utils.add_or_update_url_param(
-                    utils.strip_url_params(url), param, node.params[param]
+                    url_clean, param, node.params[param]
                 )
                 if lfi := lfi_checker.lfi_checker(clean):
-                    vulnerable = utils.add_or_update_url_param(
-                        utils.strip_url_params(url), param, lfi
-                    )
-                    self._logger.warning(
-                        f"{VulnType.LFI} Vulnerability found : {lfi}")
-                    ev.vuln_found(url=vulnerable,
-                                  type=VulnType.LFI, payload=lfi)
+                    vuln = Vulnerability(
+                        VulnerabilityName.LFI, url, param, lfi)
+                    ev.vuln_found(vuln)
+
                 if xss := xss_checker.xss_checker(clean):
-                    vulnerable = utils.add_or_update_url_param(
-                        utils.strip_url_params(url), param, xss
-                    )
-                    self._logger.warning(
-                        f"{VulnType.XSS} Vulnerability found : {vulnerable}")
-                    ev.vuln_found(
-                        url=vulnerable, type=VulnType.XSS, payload=xss)
+                    vuln = Vulnerability(
+                        VulnerabilityName.XSS, url, param, xss)
+                    ev.vuln_found(vuln)
+
                 if sqli := sql_checker.sql_checker(clean):
-                    vulnerable = utils.add_or_update_url_param(
-                        utils.strip_url_params(url), param, sqli
-                    )
-                    self._logger.warning(
-                        f"{VulnType.SQLI} Vulnerability found : {vulnerable}")
-                    ev.vuln_found(
-                        url=vulnerable, type=VulnType.SQLI, payload=sqli)
+                    vuln = Vulnerability(
+                        VulnerabilityName.SQLI, url, param, sqli)
+                    ev.vuln_found(vuln)
 
             self.queue.task_done()
 

@@ -11,3 +11,4 @@ pdfkit
 matplotlib
 rich
 blinker
+jinja2
