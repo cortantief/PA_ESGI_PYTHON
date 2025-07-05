@@ -11,6 +11,8 @@ from typing import TypedDict, List, Literal
 from enum import Enum
 from dataclasses import dataclass
 from importlib import resources as imp_res
+import matplotlib
+matplotlib.use("Agg")
 
 
 class VulnerabilityName(str, Enum):
