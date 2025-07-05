@@ -53,11 +53,19 @@ def main():
         help="Nombre de threads pour l'analyse"
     )
 
+    parser.add_argument(
+        "--log",
+        type=bool,
+        default=True,
+        help="Nombre de threads pour l'analyse"
+    )
+
     args = parser.parse_args()
     scanner = SecurityScanner(
         target=args.url,
         threads_nbr=args.threads,
         log_level=args.log,
-        output_file=args.output
+        output_file=args.output,
+        enable_log=args.log
     )
     scanner.run()
