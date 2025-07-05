@@ -20,20 +20,20 @@ import time
 
 
 class SecurityScanner:
-    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO", output_file: str | None = None, install_signal_handlers=True):
+    def __init__(self, target: str, threads_nbr: int = 1, log_level: str = "INFO", output_file: str | None = None, install_signal_handlers=True, enable_log: bool = True):
         self.target = target if target.endswith("/") else target + "/"
         self.domain = urllib.parse.urlparse(self.target).netloc
         self.threads_nbr = threads_nbr
-        self.log_level = log_level
         self.queue = Queue()
         self.tree = tree.WebTree("/")
         self.process = CrawlerProcess(
             settings={'LOG_ENABLED': False}
         )
-        self._logger = pa_log.PrettyLogger(level=log_level)
+        self.output_file = output_file
+
+        self._logger = pa_log.PrettyLogger(level=log_level, enabled=enable_log)
         self._task_size = 0
         self._started = False
-        self.output_file = output_file
         self._vuln_store = rapport_gen.VulnerabilityStore(target)
         self._install_signal_handlers = install_signal_handlers
 
