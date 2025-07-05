@@ -10,9 +10,10 @@ class PrettyLogger:
     LEVELS = ["DEBUG", "INFO", "WARNING",
               "ERROR", "CRITICAL", "PAYLOAD", "TRAFFIC"]
 
-    def __init__(self, level="INFO"):
+    def __init__(self, level="INFO", enabled=True):
         self.console = Console()
         self.level = level.upper()
+        self.enabled = enabled
         if self.level not in self.LEVELS:
             self.level = "INFO"
 
@@ -27,22 +28,20 @@ class PrettyLogger:
             "TIMESTAMP": "bright_green",
         }
 
-        self._buffer = deque()         # Optional: can be used for batch/log history
-        self._lock = Lock()            # Protect console output
+        self._buffer = deque()
+        self._lock = Lock()
 
     def _enqueue_and_flush(self, lvl, msg):
-        if self.LEVELS.index(lvl) < self.LEVELS.index(self.level):
+        if self.LEVELS.index(lvl) < self.LEVELS.index(self.level) or not self.enabled:
             return
 
         ts = datetime.now().strftime("%H:%M:%S")
         styled_ts = Text(ts, style=self.styles["TIMESTAMP"])
         styled_level = Text(lvl, style=self.styles.get(lvl, ""))
 
-        # Build the full styled message
         line = Text("[") + styled_ts + Text("] [") + \
             styled_level + Text("] ") + Text(msg)
 
-        # Lock to ensure atomic print
         with self._lock:
             self.console.print(line)
 
