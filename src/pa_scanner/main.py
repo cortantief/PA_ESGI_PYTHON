@@ -54,10 +54,7 @@ def main():
     )
 
     parser.add_argument(
-        "--log",
-        type=bool,
-        default=True,
-        help="Nombre de threads pour l'analyse"
+        "--enable-log", action=argparse.BooleanOptionalAction, default=True
     )
 
     args = parser.parse_args()
