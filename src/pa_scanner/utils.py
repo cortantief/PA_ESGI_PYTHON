@@ -1,7 +1,6 @@
 import string
 import random
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode, urlunparse
-from typing import List
 
 
 def add_or_update_url_param(url: str, key: str, value) -> str:

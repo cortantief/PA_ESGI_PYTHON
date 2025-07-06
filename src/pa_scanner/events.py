@@ -1,9 +1,8 @@
 # pa_scanner/events.py  (or whatever module name you choose)
 from __future__ import annotations
 
-from typing import Callable, Literal, TypeAlias
+from typing import Callable, TypeAlias
 from blinker import Signal
-from enum import Enum
 from .rapport_gen import Vulnerability
 
 

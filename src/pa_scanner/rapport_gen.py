@@ -6,8 +6,7 @@ import pdfkit
 from datetime import datetime, timezone
 import tempfile
 import json
-from pathlib import Path
-from typing import TypedDict, List, Literal
+from typing import List
 from enum import Enum
 from dataclasses import dataclass
 from importlib import resources as imp_res

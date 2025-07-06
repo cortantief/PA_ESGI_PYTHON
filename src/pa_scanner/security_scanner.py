@@ -16,7 +16,6 @@ from pydispatch import dispatcher
 from scrapy import signals
 from queue import Queue
 import urllib
-import time
 
 
 class SecurityScanner:

@@ -1,5 +1,5 @@
 from . import utils
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from urllib.parse import urlparse, urlencode, urlunparse
 from .fingerprint import generate_fingerprint, compare_fingerprint
 from importlib import resources as imp_res
 
