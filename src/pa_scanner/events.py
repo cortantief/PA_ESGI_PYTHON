@@ -69,6 +69,5 @@ def vuln_found(vuln: Vulnerability) -> None:
 
 __all__ = [
     "on_scan_start", "on_scan_end",
-    "on_page_found", "on_param_found", "on_vuln_found",
-    "VulnType",
+    "on_page_found", "on_param_found", "on_vuln_found"
 ]
